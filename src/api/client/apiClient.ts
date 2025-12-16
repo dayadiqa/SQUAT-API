@@ -1,6 +1,8 @@
 import type { APIRequestContext } from "@playwright/test";
 import type { ApiEndpoint } from "../http/types";
 import { getBaseUrl } from "../../config/env";
+import type { ZodType } from "zod";
+import { ZodError } from "zod";
 
 type FetchOptions = Parameters<APIRequestContext["fetch"]>[1];
 
@@ -9,7 +11,8 @@ export class ApiClient {
 
     async send<TPayload, TResponse>(
         endpoint: ApiEndpoint<TPayload, TResponse>,
-        payload?: TPayload
+        payload?: TPayload,
+        responseSchema?: ZodType<TResponse>
     ): Promise<TResponse> {
         const options: FetchOptions = {
             method: endpoint.method,
@@ -35,6 +38,20 @@ export class ApiClient {
             throw new Error(
                 `[${endpoint.method}] ${endpoint.path} failed: ${status}`
             );
+        }
+
+        if (responseSchema) {
+            try {
+                responseSchema.parse(responseBody);
+            } catch (error) {
+                if (error instanceof ZodError) {
+                    console.error("❌ Zod Validation Error:", error.issues);
+                    throw new Error(
+                        `Response schema validation failed for ${endpoint.path}`
+                    );
+                }
+                throw error;
+            }
         }
 
         return responseBody;
