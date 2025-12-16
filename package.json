@@ -1,13 +1,14 @@
 {
-  "name": "${PROJECT_NAME}",
+  "name": "squat-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "API testing repository using Playwright for automated backend validation.",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc"
   },
-  "dependencies": {},
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.2",
     "typescript": "^5.5.3"
   },
   "private": true
