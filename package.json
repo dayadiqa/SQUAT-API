@@ -20,5 +20,8 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.50.0"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
 }
