@@ -3,7 +3,9 @@ import { ContentType } from "../../http/contentType";
 import type {
     LoginPayload,
     LoginResponse,
-    MeResponse
+    MeResponse,
+    RefreshPayload,
+    RefreshResponse
 } from "../payloads/users.payload";
 
 export const AuthEndpoint = {
@@ -17,5 +19,11 @@ export const AuthEndpoint = {
         path: "/user/me",
         method: "GET",
         requiresAuth: true
-    } as ApiEndpoint<void, MeResponse>
+    } as ApiEndpoint<void, MeResponse>,
+
+    refresh: {
+        path: "/auth/refresh",
+        method: "POST",
+        contentType: ContentType.JSON
+    } as ApiEndpoint<RefreshPayload, RefreshResponse>
 };

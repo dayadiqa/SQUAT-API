@@ -92,3 +92,16 @@ export interface Crypto {
     wallet: string;
     network: string;
 }
+
+export type Credentials = "include";
+
+export interface RefreshPayload {
+    refreshToken?: string;
+    expiresInMins?: number;
+    credentials: Credentials;
+}
+
+export interface RefreshResponse {
+    accessToken: string;
+    refreshToken: string;
+}
