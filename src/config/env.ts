@@ -1,5 +1,8 @@
 import dotenv from "dotenv";
-dotenv.config();
+
+if (process.env.NODE_ENV !== "ci") {
+    dotenv.config();
+}
 
 type EnvName = "DUMMY_JSON";
 
