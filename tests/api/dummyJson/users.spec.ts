@@ -1,7 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { ApiClient } from "../../../src/api/client/apiClient";
 import { AuthEndpoint } from "../../../src/api/dummyJson/endpoints/users.endpoint";
-import { LoginResponseSchema } from "../../../src/api/dummyJson/schemas/users.schema";
+import {
+    LoginResponseSchema,
+    MeResponseSchema
+} from "../../../src/api/dummyJson/schemas/users.schema";
 
 test(
     "login api - validate response schema",
@@ -9,7 +12,7 @@ test(
     async ({ request }) => {
         const api = new ApiClient(request);
 
-        const response = await api.send(
+        const loginResponse = await api.send(
             AuthEndpoint.login,
             {
                 username: "emilys",
@@ -19,8 +22,18 @@ test(
             LoginResponseSchema
         );
 
+        api.setToken(loginResponse.accessToken);
+
         // optional business assertion
-        expect(response.username).toBe("emilys");
-        expect(response.accessToken).toBeTruthy();
+        expect(loginResponse.username).toBe("emilys");
+        expect(loginResponse.accessToken).toBeTruthy();
+
+        const meResponse = await api.send(
+            AuthEndpoint.me,
+            undefined,
+            MeResponseSchema
+        );
+
+        expect(meResponse.username).toBe("emilys");
     }
 );

@@ -7,13 +7,37 @@ import { ZodError } from "zod";
 type FetchOptions = Parameters<APIRequestContext["fetch"]>[1];
 
 export class ApiClient {
+    private token?: string;
+
     constructor(private request: APIRequestContext) {}
+
+    setToken(token: string) {
+        this.token = token;
+    }
 
     async send<TPayload, TResponse>(
         endpoint: ApiEndpoint<TPayload, TResponse>,
         payload?: TPayload,
         responseSchema?: ZodType<TResponse>
     ): Promise<TResponse> {
+        const headers: Record<string, string> = {};
+
+        // Content-Type
+        if (endpoint.contentType) {
+            headers["Content-Type"] = endpoint.contentType;
+        }
+
+        // 🔐 Authorization (hanya jika endpoint butuh auth)
+        if (endpoint.requiresAuth) {
+            if (!this.token) {
+                throw new Error(
+                    `Authorization token is missing for ${endpoint.path}`
+                );
+            }
+
+            headers["Authorization"] = `Bearer ${this.token}`;
+        }
+
         const options: FetchOptions = {
             method: endpoint.method,
             ...(payload && { data: payload })
@@ -27,7 +51,7 @@ export class ApiClient {
         const responseBody = (await response.json()) as TResponse;
 
         // === PRINT RESPONSE ===
-        console.log("=== API RESPONSE ===");
+        console.log("\n=== API RESPONSE ===");
         console.log("Method:", endpoint.method);
         console.log("URL:", url);
         console.log("Status:", status);
