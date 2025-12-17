@@ -2,7 +2,7 @@ name: SQUAT-API Automation CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
     types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
@@ -56,6 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     if: >
       github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
       github.event.pull_request.base.ref == 'main' &&
       contains(github.event.pull_request.labels.*.name, 'auto-merge') &&
       github.event.pull_request.merged == false &&
@@ -67,10 +68,27 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const pr = context.payload.pull_request;
-            
-            await github.rest.pulls.merge({
+
+            const { data } = await github.rest.pulls.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: pr.number,
               merge_method: "squash"
+            });
+
+            if (!data.merged) {
+              throw new Error("Merge failed");
+            }
+
+      - name: Delete branch
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const ref = context.payload.pull_request.head.ref;
+
+            await github.rest.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `heads/${ref}`
             });
