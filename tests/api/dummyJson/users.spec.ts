@@ -7,8 +7,8 @@ import {
 } from "../../../src/api/dummyJson/schemas/users.schema";
 
 test(
-    "login api - validate response schema",
-    { tag: "@coba" },
+    "Login and user auth-me api - validate business and response schema @users",
+    { tag: "@high" },
     async ({ request }) => {
         const api = new ApiClient(request);
 

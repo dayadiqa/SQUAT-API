@@ -5,7 +5,9 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test:api": "npx playwright test --project=api --grep '@high'"
+
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
