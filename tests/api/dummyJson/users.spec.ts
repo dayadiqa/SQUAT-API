@@ -3,7 +3,8 @@ import { ApiClient } from "../../../src/api/client/apiClient";
 import { AuthEndpoint } from "../../../src/api/dummyJson/endpoints/users.endpoint";
 import {
     LoginResponseSchema,
-    MeResponseSchema
+    MeResponseSchema,
+    RefreshResponseSchema
 } from "../../../src/api/dummyJson/schemas/users.schema";
 
 test(
@@ -35,5 +36,33 @@ test(
         );
 
         expect(meResponse.username).toBe("emilys");
+    }
+);
+
+test(
+    "Auth refresh api @users",
+    {
+        tag: "@high"
+    },
+    async ({ request }) => {
+        const api = new ApiClient(request);
+
+        const loginResponse = await api.send(AuthEndpoint.login, {
+            username: "emilys",
+            password: "emilyspass",
+            expiresInMins: 30
+        });
+
+        const refreshToken = loginResponse.refreshToken;
+
+        await api.send(
+            AuthEndpoint.refresh,
+            {
+                refreshToken: refreshToken,
+                expiresInMins: 30,
+                credentials: "include"
+            },
+            RefreshResponseSchema
+        );
     }
 );

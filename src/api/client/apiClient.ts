@@ -22,12 +22,10 @@ export class ApiClient {
     ): Promise<TResponse> {
         const headers: Record<string, string> = {};
 
-        // Content-Type
         if (endpoint.contentType) {
             headers["Content-Type"] = endpoint.contentType;
         }
 
-        // 🔐 Authorization (hanya jika endpoint butuh auth)
         if (endpoint.requiresAuth) {
             if (!this.token) {
                 throw new Error(
@@ -51,12 +49,11 @@ export class ApiClient {
         const responseBody = (await response.json()) as TResponse;
 
         // === PRINT RESPONSE ===
-        console.log("\n=== API RESPONSE ===");
+        console.log("=== API RESPONSE ===");
         console.log("Method:", endpoint.method);
         console.log("URL:", url);
         console.log("Status:", status);
-        console.log("Body:", responseBody);
-        console.log("====================");
+        console.log("Body:", responseBody, "\n");
 
         if (!response.ok()) {
             throw new Error(
@@ -69,7 +66,7 @@ export class ApiClient {
                 responseSchema.parse(responseBody);
             } catch (error) {
                 if (error instanceof ZodError) {
-                    console.error("❌ Zod Validation Error:", error.issues);
+                    console.error("Zod Validation Error:", error.issues);
                     throw new Error(
                         `Response schema validation failed for ${endpoint.path}`
                     );

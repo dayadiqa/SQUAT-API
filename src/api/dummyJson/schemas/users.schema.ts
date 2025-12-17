@@ -104,3 +104,8 @@ export const MeResponseSchema = z.object({
 
     role: z.string()
 });
+
+export const RefreshResponseSchema = z.object({
+    accessToken: z.string().min(1, "accessToken is required"),
+    refreshToken: z.string().min(1, "refreshToken is required")
+});
