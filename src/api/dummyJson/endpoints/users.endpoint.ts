@@ -13,17 +13,17 @@ export const AuthEndpoint = {
         path: "/user/login",
         method: "POST",
         contentType: ContentType.JSON
-    } as ApiEndpoint<LoginPayload, LoginResponse>,
+    } as ApiEndpoint<void, LoginPayload, LoginResponse>,
 
     me: {
         path: "/user/me",
         method: "GET",
         requiresAuth: true
-    } as ApiEndpoint<void, MeResponse>,
+    } as ApiEndpoint<void, void, MeResponse>,
 
     refresh: {
         path: "/auth/refresh",
         method: "POST",
         contentType: ContentType.JSON
-    } as ApiEndpoint<RefreshPayload, RefreshResponse>
+    } as ApiEndpoint<void, RefreshPayload, RefreshResponse>
 };
