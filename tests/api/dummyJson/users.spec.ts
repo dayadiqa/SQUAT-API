@@ -15,6 +15,7 @@ test(
 
         const loginResponse = await api.send(
             AuthEndpoint.login,
+            undefined,
             {
                 username: "emilys",
                 password: "emilyspass",
@@ -32,6 +33,7 @@ test(
         const meResponse = await api.send(
             AuthEndpoint.me,
             undefined,
+            undefined,
             MeResponseSchema
         );
 
@@ -47,7 +49,7 @@ test(
     async ({ request }) => {
         const api = new ApiClient(request);
 
-        const loginResponse = await api.send(AuthEndpoint.login, {
+        const loginResponse = await api.send(AuthEndpoint.login, undefined, {
             username: "emilys",
             password: "emilyspass",
             expiresInMins: 30
@@ -57,6 +59,7 @@ test(
 
         await api.send(
             AuthEndpoint.refresh,
+            undefined,
             {
                 refreshToken: refreshToken,
                 expiresInMins: 30,

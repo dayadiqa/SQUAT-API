@@ -5,6 +5,7 @@ import type { ZodType } from "zod";
 import { ZodError } from "zod";
 
 type FetchOptions = Parameters<APIRequestContext["fetch"]>[1];
+type QueryParams = Record<string, string | number | boolean | null | void>;
 
 export class ApiClient {
     private token?: string;
@@ -15,8 +16,9 @@ export class ApiClient {
         this.token = token;
     }
 
-    async send<TPayload, TResponse>(
-        endpoint: ApiEndpoint<TPayload, TResponse>,
+    async send<TQuery extends QueryParams | void, TPayload, TResponse>(
+        endpoint: ApiEndpoint<TQuery, TPayload, TResponse>,
+        query?: TQuery,
         payload?: TPayload,
         responseSchema?: ZodType<TResponse>
     ): Promise<TResponse> {
@@ -36,12 +38,27 @@ export class ApiClient {
             headers["Authorization"] = `Bearer ${this.token}`;
         }
 
+        const queryString =
+            query && Object.keys(query).length > 0
+                ? `?${new URLSearchParams(
+                      Object.entries(query).reduce<Record<string, string>>(
+                          (acc, [key, value]) => {
+                              if (value !== undefined && value !== null) {
+                                  acc[key] = String(value);
+                              }
+                              return acc;
+                          },
+                          {}
+                      )
+                  ).toString()}`
+                : "";
+
+        const url = `${getBaseUrl()}${endpoint.path}${queryString}`;
+
         const options: FetchOptions = {
             method: endpoint.method,
             ...(payload && { data: payload })
         };
-
-        const url = `${getBaseUrl()}${endpoint.path}`;
 
         const response = await this.request.fetch(url, options);
 
