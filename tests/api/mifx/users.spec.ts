@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { UsersRequestHelper } from "./users.helper";
+import { saveUsersToCsv } from "./csv.helper";
 
 test(
     "A-01 Valid request with page=2",
@@ -226,5 +227,20 @@ test(
         });
 
         expect(usersResponse.responseTime).toBeLessThanOrEqual(2000);
+    }
+);
+
+test(
+    "Export users API to CSV @csv",
+    {
+        tag: "@mifx"
+    },
+    async ({ request }) => {
+        const usersResponse = await UsersRequestHelper({
+            request,
+            page: "2"
+        });
+
+        await saveUsersToCsv(usersResponse.data.data, "users.csv");
     }
 );
