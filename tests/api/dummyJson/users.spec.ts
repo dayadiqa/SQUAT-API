@@ -24,11 +24,11 @@ test(
             LoginResponseSchema
         );
 
-        api.setToken(loginResponse.accessToken);
+        api.setToken(loginResponse.data.accessToken);
 
         // optional business assertion
-        expect(loginResponse.username).toBe("emilys");
-        expect(loginResponse.accessToken).toBeTruthy();
+        expect(loginResponse.data.username).toBe("emilys");
+        expect(loginResponse.data.accessToken).toBeTruthy();
 
         const meResponse = await api.send(
             AuthEndpoint.me,
@@ -37,7 +37,7 @@ test(
             MeResponseSchema
         );
 
-        expect(meResponse.username).toBe("emilys");
+        expect(meResponse.data.username).toBe("emilys");
     }
 );
 
@@ -55,7 +55,7 @@ test(
             expiresInMins: 30
         });
 
-        const refreshToken = loginResponse.refreshToken;
+        const refreshToken = loginResponse.data.refreshToken;
 
         await api.send(
             AuthEndpoint.refresh,
