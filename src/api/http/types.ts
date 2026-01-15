@@ -11,6 +11,9 @@ export interface ApiEndpoint<
     contentType?: string;
     requiresAuth?: boolean;
 
+    requiresApiKey?: boolean;
+    apiKeyHeaderName?: string;
+
     payload?: TPayload;
     response?: TResponse;
 }

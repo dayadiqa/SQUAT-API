@@ -7,8 +7,16 @@ import { ZodError } from "zod";
 type FetchOptions = Parameters<APIRequestContext["fetch"]>[1];
 type QueryParams = Record<string, string | number | boolean | null | void>;
 
+export interface ApiResponse<T> {
+    status: number;
+    data: T;
+    contentType?: string;
+    responseTime: number;
+}
+
 export class ApiClient {
     private token?: string;
+    private apiKey?: string;
 
     constructor(private request: APIRequestContext) {}
 
@@ -16,13 +24,19 @@ export class ApiClient {
         this.token = token;
     }
 
+    setApiKey(apiKey: string) {
+        this.apiKey = apiKey;
+    }
+
     async send<TQuery extends QueryParams | void, TPayload, TResponse>(
         endpoint: ApiEndpoint<TQuery, TPayload, TResponse>,
         query?: TQuery,
         payload?: TPayload,
         responseSchema?: ZodType<TResponse>
-    ): Promise<TResponse> {
-        const headers: Record<string, string> = {};
+    ): Promise<ApiResponse<TResponse>> {
+        const headers: Record<string, string> = {
+            Accept: "application/json, text/html;q=0.9,*/*;q=0.8"
+        };
 
         if (endpoint.contentType) {
             headers["Content-Type"] = endpoint.contentType;
@@ -34,8 +48,16 @@ export class ApiClient {
                     `Authorization token is missing for ${endpoint.path}`
                 );
             }
-
             headers["Authorization"] = `Bearer ${this.token}`;
+        }
+
+        if (endpoint.requiresApiKey) {
+            if (!this.apiKey) {
+                throw new Error(`API key is missing for ${endpoint.path}`);
+            }
+
+            const headerName = endpoint.apiKeyHeaderName ?? "x-api-key";
+            headers[headerName] = this.apiKey;
         }
 
         const queryString =
@@ -57,20 +79,35 @@ export class ApiClient {
 
         const options: FetchOptions = {
             method: endpoint.method,
+            headers,
             ...(payload && { data: payload })
         };
 
+        const startTime = Date.now();
+
         const response = await this.request.fetch(url, options);
 
+        const responseTime = Date.now() - startTime;
+
         const status = response.status();
-        const responseBody = (await response.json()) as TResponse;
+
+        const contentType = response.headers()["content-type"] ?? "";
+
+        let responseBody: unknown;
+
+        if (contentType.includes("application/json")) {
+            responseBody = await response.json();
+        } else {
+            responseBody = await response.text();
+        }
 
         // === PRINT RESPONSE ===
-        console.log("=== API RESPONSE ===");
-        console.log("Method:", endpoint.method);
-        console.log("URL:", url);
-        console.log("Status:", status);
-        console.log("Body:", responseBody, "\n");
+        // console.log("=== API RESPONSE ===");
+        // console.log("Method:", endpoint.method);
+        // console.log("URL:", url);
+        // console.log("Status:", status);
+        // console.log("Content-Type:", contentType);
+        // console.log("Body:", responseBody, "\n");
 
         if (!response.ok()) {
             throw new Error(
@@ -78,7 +115,7 @@ export class ApiClient {
             );
         }
 
-        if (responseSchema) {
+        if (responseSchema && contentType.includes("application/json")) {
             try {
                 responseSchema.parse(responseBody);
             } catch (error) {
@@ -92,6 +129,11 @@ export class ApiClient {
             }
         }
 
-        return responseBody;
+        return {
+            status,
+            contentType,
+            data: responseBody as TResponse,
+            responseTime
+        };
     }
 }
